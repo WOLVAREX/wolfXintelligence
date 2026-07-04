@@ -1,0 +1,554 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: wolfXintelligence API - NVIDIA AI agent platform
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: models
+    description: NVIDIA model operations
+  - name: agents
+    description: AI agent operations
+  - name: conversations
+    description: Conversation operations
+  - name: messages
+    description: Message operations
+  - name: settings
+    description: Settings operations
+  - name: stats
+    description: Statistics and dashboard operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /models:
+    get:
+      operationId: listModels
+      tags: [models]
+      summary: List available NVIDIA models
+      description: Returns all configured NVIDIA models
+      responses:
+        "200":
+          description: List of models
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Model"
+
+  /models/{id}:
+    get:
+      operationId: getModel
+      tags: [models]
+      summary: Get a model by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Model details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Model"
+        "404":
+          description: Not found
+
+  /agents:
+    get:
+      operationId: listAgents
+      tags: [agents]
+      summary: List all agents
+      responses:
+        "200":
+          description: List of agents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Agent"
+    post:
+      operationId: createAgent
+      tags: [agents]
+      summary: Create an agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+
+  /agents/{id}:
+    get:
+      operationId: getAgent
+      tags: [agents]
+      summary: Get an agent by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Agent details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateAgent
+      tags: [agents]
+      summary: Update an agent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentUpdate"
+      responses:
+        "200":
+          description: Updated agent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agent"
+    delete:
+      operationId: deleteAgent
+      tags: [agents]
+      summary: Delete an agent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /conversations:
+    get:
+      operationId: listConversations
+      tags: [conversations]
+      summary: List all conversations
+      parameters:
+        - name: agentId
+          in: query
+          required: false
+          schema:
+            type: ["integer", "null"]
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Conversation"
+    post:
+      operationId: createConversation
+      tags: [conversations]
+      summary: Start a new conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConversationInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+
+  /conversations/{id}:
+    get:
+      operationId: getConversation
+      tags: [conversations]
+      summary: Get a conversation by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Conversation details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteConversation
+      tags: [conversations]
+      summary: Delete a conversation and all its messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /conversations/{id}/messages:
+    get:
+      operationId: listMessages
+      tags: [messages]
+      summary: List messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
+    post:
+      operationId: sendMessage
+      tags: [messages]
+      summary: Send a message and get AI response
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MessageInput"
+      responses:
+        "201":
+          description: AI response message
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessagePair"
+
+  /settings:
+    get:
+      operationId: getSettings
+      tags: [settings]
+      summary: Get current settings
+      responses:
+        "200":
+          description: Current settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+    patch:
+      operationId: updateSettings
+      tags: [settings]
+      summary: Update settings (e.g. API key)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SettingsUpdate"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Settings"
+
+  /stats:
+    get:
+      operationId: getDashboardStats
+      tags: [stats]
+      summary: Get dashboard statistics
+      responses:
+        "200":
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /stats/model-usage:
+    get:
+      operationId: getModelUsage
+      tags: [stats]
+      summary: Get per-model usage breakdown
+      responses:
+        "200":
+          description: Model usage breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ModelUsageStat"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    Model:
+      type: object
+      required: [id, name, modelId, category, description, isEnabled]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        modelId:
+          type: string
+          description: NVIDIA API model identifier (e.g. meta/llama-3.1-8b-instruct)
+        category:
+          type: string
+          description: "Category: code, chat, reasoning, vision"
+        description:
+          type: string
+        contextLength:
+          type: ["integer", "null"]
+        isEnabled:
+          type: boolean
+        createdAt:
+          type: string
+
+    Agent:
+      type: object
+      required: [id, name, modelId, systemPrompt, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        modelId:
+          type: integer
+          description: FK to models table
+        modelName:
+          type: ["string", "null"]
+        systemPrompt:
+          type: string
+        temperature:
+          type: ["number", "null"]
+        maxTokens:
+          type: ["integer", "null"]
+        conversationCount:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+
+    AgentInput:
+      type: object
+      required: [name, modelId, systemPrompt]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        modelId:
+          type: integer
+        systemPrompt:
+          type: string
+        temperature:
+          type: number
+        maxTokens:
+          type: integer
+
+    AgentUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        modelId:
+          type: integer
+        systemPrompt:
+          type: string
+        temperature:
+          type: number
+        maxTokens:
+          type: integer
+
+    Conversation:
+      type: object
+      required: [id, title, agentId, agentName, messageCount, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        agentId:
+          type: integer
+        agentName:
+          type: string
+        modelName:
+          type: ["string", "null"]
+        messageCount:
+          type: integer
+        lastMessage:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    ConversationInput:
+      type: object
+      required: [agentId]
+      properties:
+        agentId:
+          type: integer
+        title:
+          type: string
+
+    Message:
+      type: object
+      required: [id, conversationId, role, content, createdAt]
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        role:
+          type: string
+          description: "user or assistant"
+        content:
+          type: string
+        tokensUsed:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+
+    MessageInput:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+
+    MessagePair:
+      type: object
+      required: [userMessage, assistantMessage]
+      properties:
+        userMessage:
+          $ref: "#/components/schemas/Message"
+        assistantMessage:
+          $ref: "#/components/schemas/Message"
+
+    Settings:
+      type: object
+      required: [id, hasApiKey, defaultModelId]
+      properties:
+        id:
+          type: integer
+        hasApiKey:
+          type: boolean
+          description: Whether an NVIDIA API key is configured (never returns the key itself)
+        defaultModelId:
+          type: ["integer", "null"]
+        updatedAt:
+          type: string
+
+    SettingsUpdate:
+      type: object
+      properties:
+        nvidiaApiKey:
+          type: string
+          description: NVIDIA API key to store
+        defaultModelId:
+          type: integer
+
+    DashboardStats:
+      type: object
+      required: [totalConversations, totalMessages, totalAgents, activeModels, tokensUsed]
+      properties:
+        totalConversations:
+          type: integer
+        totalMessages:
+          type: integer
+        totalAgents:
+          type: integer
+        activeModels:
+          type: integer
+        tokensUsed:
+          type: integer
+        recentConversations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Conversation"
+
+    ModelUsageStat:
+      type: object
+      required: [modelName, messageCount, tokensUsed]
+      properties:
+        modelName:
+          type: string
+        modelId:
+          type: string
+        messageCount:
+          type: integer
+        tokensUsed:
+          type: integer

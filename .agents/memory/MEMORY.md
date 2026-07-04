@@ -1,0 +1,3 @@
+- [wolfX NVIDIA API integration](wolfx-nvidia.md) — NVIDIA API key stored in DB, never returned; callNvidiaChat() in api-server/src/lib/nvidia.ts uses OpenAI-compatible endpoint; checks NVIDIA_API_KEY then NVIDIA_KEY env vars
+- [NVIDIA NIM available models](nvidia-nim-models.md) — 5 models confirmed accessible: Llama 3.1 8B/70B, Llama 3.3 70B, Nemotron-Mini 4B, Mixtral 8x7B; re-run POST /api/admin/sync-models to refresh
+- [wolfX auth system](wolfx-auth.md) — JWT auth with admin/user roles; admin seeded at startup (admin/WolfX@2024!); requireAdmin guards agent writes + settings PATCH + admin routes
